@@ -186,7 +186,7 @@ function parseValue(value) {
   let result = null;
 
   try {
-    result = valueParser(value, { loose: true }).parse();
+    result = valueParser.parse(value);
   } catch (e) {
     return {
       type: "value-unknown",
