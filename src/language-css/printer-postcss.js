@@ -355,22 +355,30 @@ function genericPrint(path, options, print) {
       return concat([".", adjustNumbers(adjustStrings(node.value, options))]);
     }
     case "selector-attribute": {
-      return concat([
+      const selector = [
         "[",
         node.namespace
           ? concat([node.namespace === true ? "" : node.namespace.trim(), "|"])
           : "",
-        node.attribute.trim(),
-        node.operator ? node.operator : "",
-        node.value
-          ? quoteAttributeValue(
-              adjustStrings(node.value.trim(), options),
-              options
-            )
-          : "",
-        node.insensitive ? " i" : "",
-        "]"
-      ]);
+        node.attribute.trim()
+      ];
+
+      if (node.operator && (node.value || node.value === "")) {
+        const insensitiveFlag =
+          node.insensitiveFlag || node.raws.insensitiveFlag || "";
+
+        selector.push(node.operator);
+        selector.push(
+          quoteAttributeValue(
+            adjustStrings(node.value.trim(), options),
+            options
+          )
+        );
+        selector.push(insensitiveFlag ? " " + insensitiveFlag : "");
+      }
+      selector.push("]");
+
+      return concat(selector);
     }
     case "selector-combinator": {
       if (
@@ -918,10 +926,21 @@ function adjustStrings(value, options) {
 }
 
 function quoteAttributeValue(value, options) {
-  const quote = options.singleQuote ? "'" : '"';
-  return value.includes('"') || value.includes("'")
-    ? value
-    : quote + value + quote;
+  let quote = options.singleQuote ? "'" : '"';
+
+  if (!value) {
+    return quote + quote;
+  }
+
+  if (value.includes("'") & value.includes('"')) {
+    return value;
+  }
+
+  if (value.includes(quote)) {
+    quote = options.singleQuote ? '"' : "'";
+  }
+
+  return quote + value + quote;
 }
 
 function adjustNumbers(value) {
