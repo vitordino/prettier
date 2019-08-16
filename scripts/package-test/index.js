@@ -4,6 +4,8 @@ const path = require("path");
 const shell = require("shelljs");
 const tempy = require("tempy");
 const rootDir = path.join(__dirname, "..", "..");
+const jestCLI =
+  "node --max-old-space-size=2048 --trace-deprecation node_modules/jest-cli/bin/jest";
 
 module.exports = function(options) {
   shell.config.fatal = true;
@@ -27,7 +29,7 @@ module.exports = function(options) {
 
   const runInBand = process.env.CI ? "--runInBand" : "";
   const testPath = process.env.TEST_STANDALONE ? "tests/" : "";
-  const cmd = `node --max-old-space-size=4096 --trace-deprecation node_modules/jest-cli/bin/jest --color ${runInBand} ${testPath}`;
+  const cmd = `${jestCLI} --color ${runInBand} ${testPath}`;
 
   return shell.exec(cmd, {
     cwd: rootDir,
