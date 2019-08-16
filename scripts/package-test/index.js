@@ -5,7 +5,7 @@ const shell = require("shelljs");
 const tempy = require("tempy");
 const rootDir = path.join(__dirname, "..", "..");
 const jestCLI =
-  "node --max-old-space-size=2048 --trace-deprecation node_modules/jest-cli/bin/jest";
+  "node --max-old-space-size=8192 --trace-deprecation node_modules/jest-cli/bin/jest";
 
 module.exports = function(options) {
   shell.config.fatal = true;
