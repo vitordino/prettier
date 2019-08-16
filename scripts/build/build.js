@@ -80,6 +80,7 @@ async function preparePackage() {
   pkg.engines.node = ">=4";
   delete pkg.dependencies;
   delete pkg.devDependencies;
+  delete pkg.scripts.preinstall;
   delete pkg.scripts.install;
   pkg.scripts = {
     prepublishOnly:
