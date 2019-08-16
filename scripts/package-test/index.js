@@ -34,7 +34,8 @@ module.exports = function(options) {
     env: Object.assign({}, process.env, {
       NODE_ENV,
       AST_COMPARE: "1",
-      PRETTIER_DIR
+      PRETTIER_DIR,
+      NODE_OPTIONS: "--max-old-space-size=2048"
     }),
     shell: true
   }).code;
