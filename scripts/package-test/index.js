@@ -27,15 +27,14 @@ module.exports = function(options) {
 
   const runInBand = process.env.CI ? "--runInBand" : "";
   const testPath = process.env.TEST_STANDALONE ? "tests/" : "";
-  const cmd = `yarn test --color ${runInBand} ${testPath}`;
+  const cmd = `node --max-old-space-size=4096 --trace-deprecation node_modules/jest-cli/bin/jest --color ${runInBand} ${testPath}`;
 
   return shell.exec(cmd, {
     cwd: rootDir,
     env: Object.assign({}, process.env, {
       NODE_ENV,
       AST_COMPARE: "1",
-      PRETTIER_DIR,
-      NODE_OPTIONS: "--max-old-space-size=2048"
+      PRETTIER_DIR
     }),
     shell: true
   }).code;
