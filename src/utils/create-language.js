@@ -1,6 +1,8 @@
 "use strict";
 
 module.exports = function(linguistData, transform) {
+  linguistData = Object.assign(linguistData, transform(linguistData));
+
   const language = {};
 
   for (const key in linguistData) {
@@ -8,5 +10,5 @@ module.exports = function(linguistData, transform) {
     language[newKey] = linguistData[key];
   }
 
-  return transform(language);
+  return language;
 };
