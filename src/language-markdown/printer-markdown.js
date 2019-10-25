@@ -434,7 +434,7 @@ function printListItem(path, options, print, listPrefix) {
         const alignment = " ".repeat(
           clamp(options.tabWidth - listPrefix.length, 0, 3) // 4+ will cause indented code block
         );
-        return concat([alignment, align(alignment, childPath.call(print))]);
+        return concat([line, align(alignment, childPath.call(print))]);
       }
     })
   ]);
