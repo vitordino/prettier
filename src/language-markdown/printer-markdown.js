@@ -896,6 +896,9 @@ function printTitle(title, options, printSpace) {
   if (printSpace) {
     return " " + printTitle(title, options, false);
   }
+
+  title = title.replace(/\\(['")])/g, "$1");
+
   if (title.includes('"') && title.includes("'") && !title.includes(")")) {
     return `(${title})`; // avoid escaped quotes
   }
