@@ -514,16 +514,16 @@ function genericPrintREAL(path, options, print) {
         }
 
         // Ignore spaces before/after string interpolation (i.e. `"#{my-fn("_")}"`)
-        const isStartSCSSinterpolationInString =
+        const isStartSCSSInterpolationInString =
           iNode.type === "value-string" && iNode.value.startsWith("#{");
-        const isEndingSCSSinterpolationInString =
+        const isEndingSCSSInterpolationInString =
           insideSCSSInterpolationInString &&
           iNextNode.type === "value-string" &&
           iNextNode.value.endsWith("}");
 
         if (
-          isStartSCSSinterpolationInString ||
-          isEndingSCSSinterpolationInString
+          isStartSCSSInterpolationInString ||
+          isEndingSCSSInterpolationInString
         ) {
           insideSCSSInterpolationInString = !insideSCSSInterpolationInString;
 
