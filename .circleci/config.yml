@@ -1,0 +1,34 @@
+version: 2
+jobs:
+  build:
+    docker:
+      # specify the version you desire here
+      - image: circleci/node:latest
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "yarn.lock" }}
+
+      - run:
+          name: Install dependencies
+          command: yarn --frozen-lockfile
+
+      # Save cache for next run
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "yarn.lock" }}
+
+      - run:
+          name: Build dist
+          command: yarn build
+
+      - store_artifacts:
+          path: ./dist
+          destination: dist
