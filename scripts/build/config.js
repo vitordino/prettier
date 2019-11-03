@@ -37,17 +37,17 @@ const parsers = [
     target: "universal",
     strict: false
   },
-  // {
-  //   input: "src/language-js/parser-typescript.js",
-  //   target: "universal",
-  //   babelPlugins: [babelReplaceArrayIncludesWithIndexof],
-  //   commonjs: {
-  //     ignore: [
-  //       // Optional package for TypeScript that logs ETW events (a Windows-only technology).
-  //       "@microsoft/typescript-etw"
-  //     ]
-  //   }
-  // },
+  {
+    input: "src/language-js/parser-typescript.js",
+    target: "universal",
+    babelPlugins: [babelReplaceArrayIncludesWithIndexof],
+    commonjs: {
+      ignore: [
+        // Optional package for TypeScript that logs ETW events (a Windows-only technology).
+        "@microsoft/typescript-etw"
+      ]
+    }
+  },
   {
     input: "src/language-js/parser-angular.js",
     target: "universal",
@@ -75,7 +75,7 @@ const parsers = [
     bundler: "webpack",
     terserOptions: {
       // prevent terser generate extra .LICENSE file
-      extractComments: false,
+      // extractComments: false,
       terserOptions: {
         mangle: {
           // postcss need keep_fnames when minify
