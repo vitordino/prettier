@@ -16,8 +16,8 @@ const {
   utils: { mapDoc, stripTrailingHardline }
 } = require("../doc");
 
-const TEMPLATE_LITERAL_PLACEHOLDER_START = "pprreettttiieerr";
-const TEMPLATE_LITERAL_PLACEHOLDER_END = "rreeiitttteerrpp";
+const TEMPLATE_LITERAL_PLACEHOLDER_START = "/** pprreettttiieerr";
+const TEMPLATE_LITERAL_PLACEHOLDER_END = "rreeiitttteerrpp **/";
 
 const getTemplateLiteralPlaceholder = index => {
   return (
@@ -27,7 +27,7 @@ const getTemplateLiteralPlaceholder = index => {
   );
 };
 
-const TEMPLATE_LITERAL_PLACEHOLDER_REGEXP = /pprreettttiieerr(\d+)rreeiitttteerrpp/;
+const TEMPLATE_LITERAL_PLACEHOLDER_REGEXP = /\/\*\* pprreettttiieerr(\d+)rreeiitttteerrpp \*\*\//;
 
 function embed(path, print, textToDoc, options) {
   const node = path.getValue();
@@ -47,31 +47,13 @@ function embed(path, print, textToDoc, options) {
         // Get full template literal with expressions replaced by placeholders
         const rawQuasis = node.quasis.map(q => q.value.raw);
         let placeholderID = 0;
-        let text = rawQuasis.reduce((prevVal, currVal, idx) => {
+        const text = rawQuasis.reduce((prevVal, currVal, idx) => {
           return idx == 0
             ? currVal
             : prevVal +
                 getTemplateLiteralPlaceholder(placeholderID++) +
                 currVal;
         }, "");
-        // postcss can't handle the following css
-        // ```css
-        // div {
-        //   pprreettttiieerr0rreeiitttteerrpp;
-        // }
-        // ```
-        // so we fake it into
-        // div {
-        //   pprreettttiieerrrreeiitttteerrpp: pprreettttiieerr0rreeiitttteerrpp;
-        // }
-        // ```
-        // and will restore back after parse
-        text = text.replace(
-          /(\n[\s]*)(pprreettttiieerr\d+rreeiitttteerrpp)([\n\s]*;)/g,
-          (_, before, idx, after) => {
-            return before + "pprreettttiieerrrreeiitttteerrpp: " + idx + after;
-          }
-        );
 
         const doc = textToDoc(text, { parser: "css" });
         return transformCssDoc(doc, path, print);
@@ -307,7 +289,7 @@ function replacePlaceholders(quasisDoc, expressionDocs) {
       const placeholder = parts[atPlaceholderIndex];
       const rest = parts.slice(atPlaceholderIndex + 1);
       const placeholderMatch = placeholder.match(
-        /([\s\S]*)pprreettttiieerr(\d+)rreeiitttteerrpp([\s\S]*)/
+        /([\s\S]*)\/\*\* pprreettttiieerr(\d+)rreeiitttteerrpp \*\*\/([\s\S]*)/
       );
       const prefix = placeholderMatch[1];
       const placeholderID = placeholderMatch[2];
@@ -319,15 +301,6 @@ function replacePlaceholders(quasisDoc, expressionDocs) {
         .slice(0, atPlaceholderIndex)
         .concat([prefix + "${", expression, "}" + suffix])
         .concat(rest);
-      parts = parts.forEach((part, index) => {
-        if (
-          part == "pprreettttiieerrrreeiitttteerrpp" &&
-          parts[index + 1] === ":"
-        ) {
-          parts[index + 1] = "";
-          parts[index] = "";
-        }
-      });
     }
     return Object.assign({}, doc, {
       parts: parts
