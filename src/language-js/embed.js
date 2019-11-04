@@ -56,7 +56,12 @@ function embed(path, print, textToDoc, options) {
         }, "");
 
         const doc = textToDoc(text, { parser: "css" });
-        return transformCssDoc(doc, path, print);
+        try {
+          return transformCssDoc(doc, path, print);
+        } catch (error) {
+          console.log(error);
+          throw error;
+        }
       }
 
       /*
