@@ -184,7 +184,7 @@ const coreBundles = [
       // Dynamic requires are not currently supported by rollup-plugin-commonjs.
       "require(filePath)": "eval('require')(filePath)",
       "require.cache": "eval('require').cache",
-      "path$1.dirname(parentModule(__filename))": "__dirname"
+      "parentModule(__filename)": "__filename"
     }
   }
 ];
