@@ -42,19 +42,26 @@ function getBabelConfig(bundle) {
     plugins: bundle.babelPlugins || [],
     compact: bundle.type === "plugin" ? false : "auto"
   };
-  if (bundle.type === "core") {
-    config.plugins.push(
-      require.resolve("./babel-plugins/transform-custom-require")
-    );
-  }
   const targets = { node: 4 };
   if (bundle.target === "universal") {
     // From https://jamie.build/last-2-versions
     targets.browsers = [">0.25%", "not ie 11", "not op_mini all"];
   }
-  config.presets = [
-    [require.resolve("@babel/preset-env"), { targets, modules: false }]
-  ];
+  const presetEnvConfig = { targets, modules: false };
+  if (bundle.type === "core") {
+    config.plugins.push(
+      require.resolve("./babel-plugins/transform-custom-require")
+    );
+    Object.assign(presetEnvConfig, {
+      debug: true,
+      useBuiltIns: "usage",
+      corejs: {
+        version: 3,
+        proposals: true
+      }
+    });
+  }
+  config.presets = [[require.resolve("@babel/preset-env"), presetEnvConfig]];
   return config;
 }
 
