@@ -60,6 +60,8 @@ function getBabelConfig(bundle) {
         proposals: true
       }
     });
+    config.exclude = config.exclude || [];
+    config.exclude.push(/\/core-js\//);
   }
   config.presets = [[require.resolve("@babel/preset-env"), presetEnvConfig]];
   return config;
