@@ -185,7 +185,7 @@ const coreBundles = [
       "require(filePath)": "eval('require')(filePath)",
       "require.cache": "eval('require').cache",
       // cosmiconfig@6 -> import-fresh can't find parentModule, since module is bundled
-      "parentModule(__filename)": "__filename",
+      // "parentModule(__filename)": "__filename",
       // `utils.promisify` required by `cosmiconfig@6` -> `path-type` is not available until node 8
       "const {promisify} = require('util');":
         "const promisify = require('pify');"
