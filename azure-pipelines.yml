@@ -102,12 +102,12 @@ jobs:
         #   node_version: 10
         # Node_v11:
         #   node_version: 11
-        # Node_v12:
-        #   node_version: 12
+        Node_v12:
+          node_version: 12
         # Node_v13:
         #   node_version: 13
         # Node_v12_standalone:
-          node_version: 12
-          TEST_STANDALONE: true
+          # node_version: 12
+          # TEST_STANDALONE: true
     steps:
       - template: .azure-pipelines/jobs/prod-test.yml
