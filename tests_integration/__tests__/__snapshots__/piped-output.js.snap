@@ -70,14 +70,14 @@ Array [
 ]
 `;
 
-exports[`output with --list-different + unformatted differs when piped (stderr) 1`] = `""`;
+exports[`output with --list-different + unformatted differs when piped (stderr) 1`] = `
+"[error] Invalid configuration file \`unformatted.js\`: ENOMEM: not enough memory, scandir 'E:\\\\project\\\\@forks\\\\prettier\\\\tests_integration\\\\cli\\\\write'
+"
+`;
 
 exports[`output with --list-different + unformatted differs when piped (stderr) 2`] = `""`;
 
-exports[`output with --list-different + unformatted differs when piped (stdout) 1`] = `
-"unformatted.jsunformatted.js
-"
-`;
+exports[`output with --list-different + unformatted differs when piped (stdout) 1`] = `""`;
 
 exports[`output with --list-different + unformatted differs when piped (stdout) 2`] = `
 "unformatted.js
