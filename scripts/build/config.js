@@ -184,7 +184,9 @@ const coreBundles = [
       // Dynamic requires are not currently supported by rollup-plugin-commonjs.
       "require(filePath)": "eval('require')(filePath)",
       "require.cache": "eval('require').cache",
-      "parentModule(__filename)": "__filename"
+      "parentModule(__filename)": "__filename",
+      // `utils.promisify` required by `cosmiconfig@6` is not available until node 8
+      "util.promisify": "require('pify')"
     }
   }
 ];
