@@ -71,14 +71,7 @@ function _resolveConfig(filePath, opts, sync) {
   };
   const load = getLoadFunction(loadOpts);
   const loadEditorConfig = resolveEditorConfig.getLoadFunction(loadOpts);
-  const arr = [load, loadEditorConfig].map(l => {
-    try {
-      return l(filePath, opts.config);
-    } catch (error) {
-      error.message += filePath;
-      throw error;
-    }
-  });
+  const arr = [load, loadEditorConfig].map(l => l(filePath, opts.config));
 
   const unwrapAndMerge = arr => {
     const result = arr[0];

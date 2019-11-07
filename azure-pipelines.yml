@@ -85,8 +85,27 @@ jobs:
         Node_v4:
           node_version: 4
           ENABLE_TEST_RESULTS: "" # jest-junit requires node v6+
+        Node_v5:
+          node_version: 5
+          ENABLE_TEST_RESULTS: "" # jest-junit requires node v6+
+        Node_v6:
+          node_version: 6
+          ENABLE_TEST_RESULTS: ""
+        Node_v7:
+          node_version: 7
+          ENABLE_TEST_RESULTS: ""
+        Node_v8:
+          node_version: 8
+        Node_v9:
+          node_version: 9
+        Node_v10:
+          node_version: 10
+        Node_v11:
+          node_version: 11
         Node_v12:
           node_version: 12
+        Node_v13:
+          node_version: 13
         Node_v12_standalone:
           node_version: 12
           TEST_STANDALONE: true
