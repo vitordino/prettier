@@ -75,7 +75,7 @@ function _resolveConfig(filePath, opts, sync) {
     try {
       return l(filePath, opts.config);
     } catch (error) {
-      console.log("filePath:", filePath);
+      error.message += filePath;
       throw error;
     }
   });
