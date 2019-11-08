@@ -90,7 +90,7 @@ function genericPrint(path, options, print) {
   if (!node) {
     return "";
   }
-  console.log({ node });
+  // console.log({ node });
   if (typeof node === "string") {
     return node;
   }
@@ -523,7 +523,6 @@ function genericPrintREAL(path, options, print) {
           iNode.type === "value-operator" &&
           ["*", "+"].indexOf(iNode.value) !== -1
         ) {
-          parts.push(" ");
           continue;
         }
 
