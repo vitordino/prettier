@@ -495,7 +495,8 @@ function genericPrintREAL(path, options, print) {
       for (let i = 0; i < node.groups.length; ++i) {
         parts.push(printed[i]);
 
-        if (node.type === "value-punctuation") {
+        if (node.type === "value-punctuation" && node.value === ",") {
+          parts.push(softline);
           continue;
         }
 
@@ -514,11 +515,10 @@ function genericPrintREAL(path, options, print) {
           continue;
         }
 
-        if (node.type === "value-punctuation" && node.value === ",") {
-          continue;
-        }
-
-        if (iNode.type === "value-operator" && iNode.value === "*") {
+        if (
+          iNode.type === "value-operator" &&
+          ["*", "+", "/"].indexOf(iNode.value) !== -1
+        ) {
           parts.push(" ");
           continue;
         }
@@ -869,7 +869,7 @@ function genericPrintREAL(path, options, print) {
       return quoteValue(adjustStrings(node.value, options), options);
     }
     case "value-atword": {
-      return concat(["@", node.name]);
+      return concat(["@", node.name, node.params ? " " + node.params : ""]);
     }
     case "value-unicode-range": {
       return node.value;
