@@ -495,6 +495,10 @@ function genericPrintREAL(path, options, print) {
       for (let i = 0; i < node.groups.length; ++i) {
         parts.push(printed[i]);
 
+        if (node.type === "value-punctuation") {
+          continue;
+        }
+
         // Ignore value inside `url()`
         if (insideURLFunction) {
           continue;
@@ -507,6 +511,15 @@ function genericPrintREAL(path, options, print) {
 
         // Ignore after latest node (i.e. before semicolon)
         if (!iNextNode) {
+          continue;
+        }
+
+        if (node.type === "value-punctuation" && node.value === ",") {
+          continue;
+        }
+
+        if (iNode.type === "value-operator" && iNode.value === "*") {
+          parts.push(" ");
           continue;
         }
 
@@ -716,8 +729,8 @@ function genericPrintREAL(path, options, print) {
           continue;
         }
 
-        // Be default all values go through `line`
-        parts.push(line);
+        // Be default all values go through `softline`
+        parts.push(softline);
       }
 
       if (didBreak) {
@@ -850,13 +863,7 @@ function genericPrintREAL(path, options, print) {
       if (value === "(") {
         return value;
       }
-      return value === "("
-        ? concat([
-            value,
-            // Don't add spaces on `:` in `url` function (i.e. `url(fbglyph: cross-outline, fig-white)`)
-            insideValueFunctionNode(path, "url") ? "" : line
-          ])
-        : concat([value, " "]);
+      return concat([value, " "]);
     }
     case "value-quoted": {
       return quoteValue(adjustStrings(node.value, options), options);
