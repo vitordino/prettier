@@ -401,10 +401,7 @@ function genericPrintREAL(path, options, print) {
         node.attribute.trim(),
         node.operator ? node.operator : "",
         node.value
-          ? quoteAttributeValue(
-              adjustStrings(node.value.trim(), options),
-              options
-            )
+          ? quoteValue(adjustStrings(node.value.trim(), options), options)
           : "",
         node.insensitive ? " i" : "",
         "]"
@@ -862,7 +859,7 @@ function genericPrintREAL(path, options, print) {
         : concat([value, " "]);
     }
     case "value-quoted": {
-      return node.value;
+      return quoteValue(adjustStrings(node.value, options), options);
     }
     case "value-atword": {
       return concat(["@", node.name]);
@@ -954,7 +951,7 @@ function adjustStrings(value, options) {
   return value.replace(STRING_REGEX, match => printString(match, options));
 }
 
-function quoteAttributeValue(value, options) {
+function quoteValue(value, options) {
   const quote = options.singleQuote ? "'" : '"';
   return value.includes('"') || value.includes("'")
     ? value

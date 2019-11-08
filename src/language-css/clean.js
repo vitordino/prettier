@@ -120,6 +120,11 @@ function clean(ast, newObj, parent) {
     }
   }
 
+  if (ast.type === "value-quoted") {
+    newObj.value = newObj.value.trim().replace(/^['"]|['"]$/g, "");
+    delete newObj.quote;
+  }
+
   if (
     (ast.type === "media-value" ||
       ast.type === "media-type" ||
