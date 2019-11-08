@@ -165,6 +165,10 @@ function clean(ast, newObj, parent) {
   if (ast.type === "selector-unknown") {
     delete newObj.value;
   }
+
+  if (ast.type === "value-func") {
+    delete newObj.params;
+  }
 }
 
 function cleanCSSStrings(value) {
