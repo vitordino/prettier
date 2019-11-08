@@ -723,15 +723,6 @@ function genericPrintREAL(path, options, print) {
           continue;
         }
 
-        // Add `space` before next math operation
-        // Note: `grip` property have `/` delimiter and it is not math operation, so
-        // `grid` property handles above
-        if (isNextMathOperator) {
-          parts.push(" ");
-
-          continue;
-        }
-
         // Be default all values go through `softline`
         parts.push(softline);
       }
