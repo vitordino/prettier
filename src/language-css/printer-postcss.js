@@ -521,7 +521,7 @@ function genericPrintREAL(path, options, print) {
 
         if (
           iNode.type === "value-operator" &&
-          ["*", "+", "/"].indexOf(iNode.value) !== -1
+          ["*", "+"].indexOf(iNode.value) !== -1
         ) {
           parts.push(" ");
           continue;
@@ -864,10 +864,7 @@ function genericPrintREAL(path, options, print) {
     }
     case "value-punctuation": {
       const value = node.value;
-      if (value === "(") {
-        return value;
-      }
-      return concat([value, " "]);
+      return value;
     }
     case "value-quoted": {
       return quoteValue(adjustStrings(node.value, options), options);
