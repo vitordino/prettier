@@ -85,7 +85,9 @@ function shouldPrintComma(options) {
 
 function genericPrint(path, options, print) {
   const node = path.getValue();
-
+  // console.log({
+  //   node
+  // });
   /* istanbul ignore if */
   if (!node) {
     return "";
@@ -128,6 +130,10 @@ function genericPrintREAL(path, options, print) {
   if (typeof node === "string") {
     return node;
   }
+
+  // console.log({
+  //   node
+  // });
 
   if (node.value && node.value.includes && node.value.includes("hsl")) {
     console.log({ node, v: node.value });
@@ -495,18 +501,17 @@ function genericPrintREAL(path, options, print) {
       for (let i = 0; i < node.groups.length; ++i) {
         parts.push(printed[i]);
 
-        if (node.type === "value-punctuation" && node.value === ",") {
-          parts.push(softline);
-          continue;
-        }
-
         // Ignore value inside `url()`
         if (insideURLFunction) {
           continue;
         }
 
-        const iPrevNode = node.groups[i - 1];
         const iNode = node.groups[i];
+        console.log({
+          parts,
+          iNode
+        });
+        const iPrevNode = node.groups[i - 1];
         const iNextNode = node.groups[i + 1];
         const iNextNextNode = node.groups[i + 2];
 
@@ -515,14 +520,62 @@ function genericPrintREAL(path, options, print) {
           continue;
         }
 
-        if (iNextNode.raws.before) {
+        // opening (
+        if (iNode.type === "value-punctuation" && ["("].includes(iNode.value)) {
+          continue;
+        }
+
+        // last node
+        if (
+          iNextNode.type === "value-punctuation" &&
+          [")"].includes(iNextNode.value)
+        ) {
+          continue;
+        }
+
+        // next node is ie hack
+        if (
+          iNextNode.type === "value-word" &&
+          iNextNode.value.startsWith("\\")
+        ) {
+          continue;
+        }
+
+        // last node
+        if (
+          iNextNode.type === "value-punctuation" &&
+          [")"].includes(iNextNode.value)
+        ) {
+          continue;
+        }
+
+        if (
+          iNode.type === "value-punctuation" &&
+          [",", ":"].includes(iNode.value)
+        ) {
           parts.push(" ");
+          continue;
+        }
+        if (iNextNode.type === "value-punctuation" && iNextNode.value === ",") {
+          continue;
+        }
+        if (iNextNode.type === "value-punctuation" && iNextNode.value === ":") {
+          continue;
+        }
+
+        if (
+          iNextNode.type === "value-operator" &&
+          ["*", "+"].indexOf(iNextNode.value) !== -1
+        ) {
+          parts.push(" ");
+          continue;
         }
 
         if (
           iNode.type === "value-operator" &&
           ["*", "+"].indexOf(iNode.value) !== -1
         ) {
+          parts.push(" ");
           continue;
         }
 
@@ -644,7 +697,8 @@ function genericPrintREAL(path, options, print) {
           (isAdditionNode(iNode) || isSubtractionNode(iNode)) &&
           i === 0 &&
           (iNextNode.type === "value-numeric" || iNextNode.isHex) &&
-          (parentParentNode && isColorAdjusterFuncNode(parentParentNode)) &&
+          parentParentNode &&
+          isColorAdjusterFuncNode(parentParentNode) &&
           !hasEmptyRawBefore(iNextNode);
 
         const requireSpaceBeforeOperator =
@@ -723,8 +777,8 @@ function genericPrintREAL(path, options, print) {
           continue;
         }
 
-        // Be default all values go through `softline`
-        parts.push(softline);
+        // Be default all values go through `line`
+        parts.push(line);
       }
 
       if (didBreak) {
