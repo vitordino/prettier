@@ -507,16 +507,23 @@ function genericPrintREAL(path, options, print) {
         }
 
         const iNode = node.groups[i];
-        console.log({
-          parts,
-          iNode
-        });
         const iPrevNode = node.groups[i - 1];
         const iNextNode = node.groups[i + 1];
         const iNextNextNode = node.groups[i + 2];
 
         // Ignore after latest node (i.e. before semicolon)
         if (!iNextNode) {
+          continue;
+        }
+
+        // workaround func name leads with ,
+        // stylefmt/font-face.css
+        // TODO: fix ast
+        if (iNextNode.type === "value-func" && iNextNode.name[0] === ",") {
+          parts.push(",");
+          parts.push(line);
+          iNextNode.name = iNextNode.name.slice(1).trim();
+          printed[i + 1].parts[0] = printed[i + 1].parts[0].slice(1).trim();
           continue;
         }
 
@@ -556,6 +563,7 @@ function genericPrintREAL(path, options, print) {
           parts.push(" ");
           continue;
         }
+
         if (iNextNode.type === "value-punctuation" && iNextNode.value === ",") {
           continue;
         }
