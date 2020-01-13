@@ -3202,10 +3202,10 @@ flatten@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/flatten/-/flatten-1.0.2.tgz#dae46a9d78fbe25292258cc1e780a41d95c03782"
 
-flow-parser@0.111.1:
-  version "0.111.1"
-  resolved "https://registry.yarnpkg.com/flow-parser/-/flow-parser-0.111.1.tgz#f84108934264105916f466e7d1824efacb19b9a3"
-  integrity sha512-yo+C0a/fMsGwooxA2xd4kK/kuzSnFC8JZLsIB68mkTllLrF/nSQ8llwD82o8Vxwvisw9IPC/ZC8zqrWmkir9jQ==
+flow-parser@0.115.0:
+  version "0.115.0"
+  resolved "https://registry.yarnpkg.com/flow-parser/-/flow-parser-0.115.0.tgz#224351123a7e20cad27baf4b71c1e338593d7eef"
+  integrity sha512-iasokPUPxp4ojhMaxN215jgp9VFliai+2YVLW3gXN5Yhb/t+QC7Z/CaKBwrrWqainfnl9SH+gr3mSGoq+IXWLQ==
 
 flush-write-stream@^1.0.0:
   version "1.1.1"
