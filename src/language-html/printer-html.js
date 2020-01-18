@@ -842,7 +842,7 @@ function printOpeningTagStartMarker(node) {
     case "interpolation":
       return "{{";
     case "docType":
-      return "<!DOCTYPE";
+      return "<!doctype";
     case "element":
       if (node.condition) {
         return `<!--[if ${node.condition}]><!--><${node.rawName}`;
