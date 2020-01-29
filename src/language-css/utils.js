@@ -58,14 +58,6 @@ function getPropOfDeclNode(path) {
   );
 }
 
-function isSCSS(parser, text) {
-  const hasExplicitParserChoice = parser === "less" || parser === "scss";
-  const IS_POSSIBLY_SCSS = /(\w\s*: [^}:]+|#){|@import[^\n]+(url|,)/;
-  return hasExplicitParserChoice
-    ? parser === "scss"
-    : IS_POSSIBLY_SCSS.test(text);
-}
-
 function isWideKeywords(value) {
   return ["initial", "inherit", "unset", "revert"].includes(
     value.toLowerCase()
@@ -390,7 +382,6 @@ module.exports = {
   insideURLFunctionInImportAtRuleNode,
   isKeyframeAtRuleKeywords,
   isWideKeywords,
-  isSCSS,
   isLastNode,
   isSCSSControlDirectiveNode,
   isDetachedRulesetDeclarationNode,

@@ -4,7 +4,7 @@ const createError = require("../common/parser-create-error");
 const parseFrontMatter = require("../utils/front-matter");
 const lineColumnToIndex = require("../utils/line-column-to-index");
 const { hasPragma } = require("./pragma");
-const { isSCSS, isSCSSNestedPropertyNode } = require("./utils");
+const { isSCSSNestedPropertyNode } = require("./utils");
 
 function parseValueNodes(nodes) {
   let parenGroup = {
@@ -508,39 +508,24 @@ function parseWithParser(parser, text, options) {
   return result;
 }
 
-function requireParser(isSCSSParser) {
-  if (isSCSSParser) {
-    return require("postcss-scss");
-  }
-
-  // TODO: Remove this hack when this issue is fixed:
-  // https://github.com/shellscape/postcss-less/issues/88
-  const LessParser = require("postcss-less/dist/less-parser");
-  LessParser.prototype.atrule = function(...args) {
-    return Object.getPrototypeOf(LessParser.prototype).atrule.apply(this, args);
-  };
-
-  return require("postcss-less");
-}
-
 function parse(text, parsers, options) {
-  const hasExplicitParserChoice =
-    options.parser === "less" || options.parser === "scss";
-  const isSCSSParser = isSCSS(options.parser, text);
+  let parser = require("postcss");
+  if (options.parser === "less") {
+    // TODO: Remove this hack when this issue is fixed:
+    // https://github.com/shellscape/postcss-less/issues/88
+    const LessParser = require("postcss-less/dist/less-parser");
+    LessParser.prototype.atrule = function(...args) {
+      return Object.getPrototypeOf(LessParser.prototype).atrule.apply(
+        this,
+        args
+      );
+    };
 
-  try {
-    return parseWithParser(requireParser(isSCSSParser), text, options);
-  } catch (originalError) {
-    if (hasExplicitParserChoice) {
-      throw originalError;
-    }
-
-    try {
-      return parseWithParser(requireParser(!isSCSSParser), text, options);
-    } catch (_secondError) {
-      throw originalError;
-    }
+    parser = require("postcss-less");
+  } else if (options.parser === "scss") {
+    parser = require("postcss-scss");
   }
+  return parseWithParser(parser, text, options);
 }
 
 const parser = {
