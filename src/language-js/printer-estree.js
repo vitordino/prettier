@@ -232,15 +232,25 @@ function genericPrint(path, options, printPath, args) {
   }
 
   const parts = [];
+  const shouldPrintComment =
+    needsParens && hasFlowShorthandAnnotationComment(node);
   if (needsParens) {
-    parts.unshift("(");
+    if (shouldPrintComment && hasLeadingComment(node)) {
+      const leadingComments = [];
+      path.each(commentPath => {
+        const comment = commentPath.getValue();
+        leadingComments.push(printComment(commentPath, options));
+        comment.printed = true;
+      }, "leadingComments");
+      parts.push(join(hardline, [...leadingComments, ""]));
+    }
+    parts.push("(");
   }
 
   parts.push(linesWithoutParens);
 
   if (needsParens) {
-    const node = path.getValue();
-    if (hasFlowShorthandAnnotationComment(node)) {
+    if (shouldPrintComment) {
       parts.push(" /*");
       parts.push(node.trailingComments[0].value.trimStart());
       parts.push("*/");
