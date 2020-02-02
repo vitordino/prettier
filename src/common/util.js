@@ -569,10 +569,30 @@ function getPreferredQuote(raw, preferredQuote) {
   return result;
 }
 
+const formatHexNumber =
+  printNumber("0xFf") === "0xFF"
+    ? value => value.toUpperCase()
+    : value => value.toLowerCase();
+
 function printString(raw, options, isDirectiveLiteral) {
   // `rawContent` is the string exactly like it appeared in the input source
   // code, without its enclosing quotes.
   const rawContent = raw.slice(1, -1);
+
+  // format numeric value
+  // 1. `\XXX` (where XXX is 1–3 octal digits; range of 0–377)
+  // 2. `\uXXXX` (where XXXX is 4 hex digits; range of 0x0000–0xFFFF)
+  rawContent.replace(/\\u([0-f]{4})/g, (_, $1) => `\\u${formatHexNumber($1)}`);
+  // 3. `\u{X} ... \u{XXXXXX}` (where X…XXXXXX is 1–6 hex digits; range of 0x0–0x10FFFF)
+  rawContent.replace(
+    /\\u\{([0-f]{1,6})\}/g,
+    (_, $1) => `\\u{${formatHexNumber($1)}}`
+  );
+  // 4. `\xXX` (where XX is 2 hex digits; range of 0x00–0xFF)
+  rawContent.replace(
+    /\\x([0-f]{2})/g,
+    (_, $1) => `\\x{${formatHexNumber($1)}}`
+  );
 
   // Check for the alternate quote, to determine if we're allowed to swap
   // the quotes on a DirectiveLiteral.
