@@ -22,10 +22,10 @@ const {
   },
   utils: { mapDoc },
   printer: { printDocToString }
-} = require("../doc");
+} = require("../document");
 const {
   getFencedCodeBlockValue,
-  getOrderedListItemInfo,
+  hasGitDiffFriendlyOrderedList,
   splitText,
   punctuationPattern,
   INLINE_NODE_TYPES,
@@ -35,12 +35,7 @@ const { replaceEndOfLineWith } = require("../common/util");
 
 const TRAILING_HARDLINE_NODES = ["importExport"];
 const SINGLE_LINE_NODE_TYPES = ["heading", "tableCell", "link"];
-const SIBLING_NODE_TYPES = [
-  "listItem",
-  "definition",
-  "footnoteDefinition",
-  "jsx"
-];
+const SIBLING_NODE_TYPES = ["listItem", "definition", "footnoteDefinition"];
 
 function genericPrint(path, options, print) {
   const node = path.getValue();
@@ -70,7 +65,7 @@ function genericPrint(path, options, print) {
       }
       return concat([
         normalizeDoc(printRoot(path, options, print)),
-        TRAILING_HARDLINE_NODES.indexOf(getLastDescendantNode(node).type) === -1
+        !TRAILING_HARDLINE_NODES.includes(getLastDescendantNode(node).type)
           ? hardline
           : ""
       ]);
@@ -236,7 +231,7 @@ function genericPrint(path, options, print) {
       const value =
         parentNode.type === "root" &&
         privateUtil.getLast(parentNode.children) === node
-          ? node.value.trimRight()
+          ? node.value.trimEnd()
           : node.value;
       const isHtmlComment = /^<!--[\s\S]*-->$/.test(value);
       return concat(
@@ -252,15 +247,28 @@ function genericPrint(path, options, print) {
         path.getParentNode()
       );
 
-      const isGitDiffFriendlyOrderedList =
-        node.ordered &&
-        node.children.length > 1 &&
-        +getOrderedListItemInfo(node.children[1], options.originalText)
-          .numberText === 1;
+      const isGitDiffFriendlyOrderedList = hasGitDiffFriendlyOrderedList(
+        node,
+        options
+      );
 
       return printChildren(path, options, print, {
         processor: (childPath, index) => {
           const prefix = getPrefix();
+          const childNode = childPath.getValue();
+
+          if (
+            childNode.children.length === 2 &&
+            childNode.children[1].type === "html" &&
+            childNode.children[0].position.start.column !==
+              childNode.children[1].position.start.column
+          ) {
+            return concat([
+              prefix,
+              printListItem(childPath, options, print, prefix)
+            ]);
+          }
+
           return concat([
             prefix,
             align(
@@ -503,7 +511,7 @@ function getAncestorCounter(path, typeOrTypes) {
   let ancestorNode;
 
   while ((ancestorNode = path.getParentNode(++counter))) {
-    if (types.indexOf(ancestorNode.type) !== -1) {
+    if (types.includes(ancestorNode.type)) {
       return counter;
     }
   }
@@ -517,6 +525,17 @@ function getAncestorNode(path, typeOrTypes) {
 }
 
 function printLine(path, value, options) {
+  const greatGrandParentNode = path.getParentNode(2);
+  if (greatGrandParentNode && greatGrandParentNode.type === "listItem") {
+    const parentNode = path.getParentNode();
+    const grandParentNode = path.getParentNode(1);
+    const index = grandParentNode.children.indexOf(parentNode);
+    const prevGrandParentNode = grandParentNode.children[index - 1];
+    if (prevGrandParentNode && prevGrandParentNode.type === "break") {
+      return "";
+    }
+  }
+
   if (options.proseWrap === "preserve" && value === "\n") {
     return hardline;
   }
@@ -656,7 +675,7 @@ function printRoot(path, options, print) {
   /** @type {IgnorePosition | null} */
   let ignoreStart = null;
 
-  const children = path.getValue().children;
+  const { children } = path.getValue();
   children.forEach((childNode, index) => {
     switch (isPrettierIgnore(childNode)) {
       case "start":
@@ -738,7 +757,7 @@ function printChildren(path, options, print, events) {
 
         if (
           lastChildNode &&
-          TRAILING_HARDLINE_NODES.indexOf(lastChildNode.type) !== -1
+          TRAILING_HARDLINE_NODES.includes(lastChildNode.type)
         ) {
           if (shouldPrePrintTripleHardline(childNode, data)) {
             parts.push(hardline);
@@ -785,57 +804,46 @@ function isPrettierIgnore(node) {
   return match === null ? false : match[1] ? match[1] : "next";
 }
 
-function isInlineNode(node) {
-  return node && INLINE_NODE_TYPES.indexOf(node.type) !== -1;
-}
-
-function isEndsWithHardLine(node) {
-  return node && /\n+$/.test(node.value);
-}
-
-function last(nodes) {
-  return nodes && nodes[nodes.length - 1];
-}
-
-function shouldNotPrePrintHardline(node, { parentNode, parts, prevNode }) {
-  const isFirstNode = parts.length === 0;
+function shouldNotPrePrintHardline(node, data) {
+  const isFirstNode = data.parts.length === 0;
+  const isInlineNode = INLINE_NODE_TYPES.includes(node.type);
 
   const isInlineHTML =
     node.type === "html" &&
-    INLINE_NODE_WRAPPER_TYPES.indexOf(parentNode.type) !== -1;
+    INLINE_NODE_WRAPPER_TYPES.includes(data.parentNode.type);
 
-  const isAfterHardlineNode =
-    prevNode &&
-    (isEndsWithHardLine(prevNode) ||
-      isEndsWithHardLine(last(prevNode.children)));
-
-  return (
-    isFirstNode || isInlineNode(node) || isInlineHTML || isAfterHardlineNode
-  );
+  return isFirstNode || isInlineNode || isInlineHTML;
 }
 
-function shouldPrePrintDoubleHardline(node, { parentNode, prevNode }) {
-  const prevNodeType = prevNode && prevNode.type;
-  const nodeType = node.type;
-
-  const isSequence = prevNodeType === nodeType;
-  const isSiblingNode =
-    isSequence && SIBLING_NODE_TYPES.indexOf(nodeType) !== -1;
+function shouldPrePrintDoubleHardline(node, data) {
+  const isSequence = (data.prevNode && data.prevNode.type) === node.type;
+  const isSiblingNode = isSequence && SIBLING_NODE_TYPES.includes(node.type);
 
   const isInTightListItem =
-    parentNode.type === "listItem" && !parentNode.spread;
+    data.parentNode.type === "listItem" && !data.parentNode.loose;
+
+  const { prevNode } = data;
+  // const isPrevNodeLooseListItem =
+  //   prevNode && prevNode.type === "listItem" && prevNode.loose;
+
+  // const isInTightListItem =
+  //   parentNode.type === "listItem" && !parentNode.spread;
   const isPrevNodeSpreadListItem =
-    prevNodeType === "listItem" && prevNode.spread;
+    prevNode && prevNode.type === "listItem" && prevNode.spread;
   const isPrevNodePrettierIgnore = isPrettierIgnore(prevNode) === "next";
 
   const isBlockHtmlWithoutBlankLineBetweenPrevHtml =
-    nodeType === "html" &&
-    prevNodeType === "html" &&
-    prevNode.position.end.line + 1 === node.position.start.line;
+    node.type === "html" &&
+    data.prevNode &&
+    data.prevNode.type === "html" &&
+    data.prevNode.position.end.line + 1 === node.position.start.line;
 
-  const isJsxInlineSibling =
-    (prevNodeType === "jsx" && isInlineNode(node)) ||
-    (nodeType === "jsx" && isInlineNode(prevNode));
+  const isHtmlDirectAfterListItem =
+    node.type === "html" &&
+    data.parentNode.type === "listItem" &&
+    data.prevNode &&
+    data.prevNode.type === "paragraph" &&
+    data.prevNode.position.end.line + 1 === node.position.start.line;
 
   return (
     isPrevNodeSpreadListItem ||
@@ -844,7 +852,7 @@ function shouldPrePrintDoubleHardline(node, { parentNode, prevNode }) {
       isInTightListItem ||
       isPrevNodePrettierIgnore ||
       isBlockHtmlWithoutBlankLineBetweenPrevHtml ||
-      isJsxInlineSibling
+      isHtmlDirectAfterListItem
     )
   );
 }
@@ -879,19 +887,19 @@ function normalizeDoc(doc) {
       return currentDoc.parts[0];
     }
 
-    const parts = [];
-
-    currentDoc.parts.forEach(part => {
+    const parts = currentDoc.parts.reduce((parts, part) => {
       if (part.type === "concat") {
-        parts.push.apply(parts, part.parts);
+        parts.push(...part.parts);
       } else if (part !== "") {
         parts.push(part);
       }
-    });
+      return parts;
+    }, []);
 
-    return Object.assign({}, currentDoc, {
+    return {
+      ...currentDoc,
       parts: normalizeParts(parts)
-    });
+    };
   });
 }
 
