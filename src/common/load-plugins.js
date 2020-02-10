@@ -90,57 +90,42 @@ function loadPlugins(plugins, pluginSearchDirs) {
 }
 
 function findPluginsInNodeModules(nodeModulesDir) {
-  const root = readDirs(nodeModulesDir)
+  const root = readDirs(nodeModulesDir);
 
-  let pluginDirs = root.filter(
-    ({name}) => name.startsWith('prettier-plugin-')
-  ).map(({name}) => path.join(nodeModulesDir, name))
-  .filter(hasPackageJson)
+  const rootPlugins = root
+    .filter(name => name.startsWith("prettier-plugin-"))
+    .map(name => path.join(nodeModulesDir, name));
 
   // `@prettier/prettier-plugin-*/package.json` will handle with other socped dirs
-  if (root.some(({name}) => name === '@prettier')) {
-    const dir = path.join(nodeModulesDir, '@prettier');
-    const dirs = readDirs(dir)
-    const plugins = 
-      dirs.filter(
-    ({name}) => name.startsWith('plugin-')
-  ).map(({name}) => path.join(dir, name))
-  .filter(hasPackageJson)
-
-pluginDirs.push(...plugins)
+  let prettierScopedPlugins = [];
+  if (root.some(name => name === "@prettier")) {
+    const dir = path.join(nodeModulesDir, "@prettier");
+    const dirs = readDirs(dir);
+    prettierScopedPlugins = dirs
+      .filter(name => name.startsWith("plugin-"))
+      .map(name => path.join(dir, name));
   }
 
-  const scoped = flatten(root
-    .filter(({name}) => name[0] === '@')
-    .map(({name}) => {
-      const dir = path.join(nodeModulesDir, name);
-      return readDirs(dir).filter(({name}) => name.startsWith('prettier-plugin-'))
-        .map(({name}) => path.join(dir, name))
-        .filter(hasPackageJson)
-  }))
-pluginDirs.push(...scoped)
+  const scopedPlugins = flatten(
+    root
+      .filter(name => name[0] === "@")
+      .map(name => {
+        const dir = path.join(nodeModulesDir, name);
+        return readDirs(dir)
+          .filter(name => name.startsWith("prettier-plugin-"))
+          .map(name => path.join(dir, name));
+      })
+  );
 
-  return pluginDirs;
+  return [...rootPlugins, ...prettierScopedPlugins, ...scopedPlugins];
 }
 
 function readDirs(dir) {
   if (!isDirectory(dir)) {
-    return []
+    return [];
   }
 
-  return fs.readdirSync(dir, {withFileTypes: true}).filter(dir => dir.isDirectory());
-}
-
-function hasPackageJson(dir) {
-  return isDirectory(dir) && isFile(path.join(dir, 'package.json'));
-}
-
-function isFile(file) {
-  try {
-    return fs.statSync(file).isFile();
-  } catch (e) {
-    return false;
-  }
+  return fs.readdirSync(dir);
 }
 
 function isDirectory(dir) {
