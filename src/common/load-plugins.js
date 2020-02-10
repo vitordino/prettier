@@ -2,8 +2,8 @@
 
 const uniqBy = require("lodash/uniqBy");
 const partition = require("lodash/partition");
+const flatten = require("lodash/flatten");
 const fs = require("fs");
-const globby = require("globby");
 const path = require("path");
 const resolve = require("resolve");
 const thirdParty = require("./third-party");
@@ -69,11 +69,9 @@ function loadPlugins(plugins, pluginSearchDirs) {
         );
       }
 
-      return findPluginsInNodeModules(nodeModulesDir).map(pluginName => ({
-        name: pluginName,
-        requirePath: resolve.sync(pluginName, {
-          basedir: resolvedPluginSearchDir
-        })
+      return findPluginsInNodeModules(nodeModulesDir).map(dir => ({
+        name: path.basename(dir),
+        requirePath: dir
       }));
     })
     .reduce((a, b) => a.concat(b), []);
@@ -92,15 +90,57 @@ function loadPlugins(plugins, pluginSearchDirs) {
 }
 
 function findPluginsInNodeModules(nodeModulesDir) {
-  const pluginPackageJsonPaths = globby.sync(
-    [
-      "prettier-plugin-*/package.json",
-      "@*/prettier-plugin-*/package.json",
-      "@prettier/plugin-*/package.json"
-    ],
-    { cwd: nodeModulesDir }
-  );
-  return pluginPackageJsonPaths.map(path.dirname);
+  const root = readDirs(nodeModulesDir)
+
+  let pluginDirs = root.filter(
+    ({name}) => name.startsWith('prettier-plugin-')
+  ).map(({name}) => path.join(nodeModulesDir, name))
+  .filter(hasPackageJson)
+
+  // `@prettier/prettier-plugin-*/package.json` will handle with other socped dirs
+  if (root.some(({name}) => name === '@prettier')) {
+    const dir = path.join(nodeModulesDir, '@prettier');
+    const dirs = readDirs(dir)
+    const plugins = 
+      dirs.filter(
+    ({name}) => name.startsWith('plugin-')
+  ).map(({name}) => path.join(dir, name))
+  .filter(hasPackageJson)
+
+pluginDirs.push(...plugins)
+  }
+
+  const scoped = flatten(root
+    .filter(({name}) => name[0] === '@')
+    .map(({name}) => {
+      const dir = path.join(nodeModulesDir, name);
+      return readDirs(dir).filter(({name}) => name.startsWith('prettier-plugin-'))
+        .map(({name}) => path.join(dir, name))
+        .filter(hasPackageJson)
+  }))
+pluginDirs.push(...scoped)
+
+  return pluginDirs;
+}
+
+function readDirs(dir) {
+  if (!isDirectory(dir)) {
+    return []
+  }
+
+  return fs.readdirSync(dir, {withFileTypes: true}).filter(dir => dir.isDirectory());
+}
+
+function hasPackageJson(dir) {
+  return isDirectory(dir) && isFile(path.join(dir, 'package.json'));
+}
+
+function isFile(file) {
+  try {
+    return fs.statSync(file).isFile();
+  } catch (e) {
+    return false;
+  }
 }
 
 function isDirectory(dir) {
