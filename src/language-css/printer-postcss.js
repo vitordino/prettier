@@ -148,6 +148,11 @@ function genericPrint(path, options, print) {
     case "css-decl": {
       const parentNode = path.getParentNode();
 
+      // ?????
+      // if (node.prop === "pprreettttiieerrrreeiitttteerrpp") {
+      //   return path.call(print, "value");
+      // }
+
       return concat([
         node.raws.before.replace(/[\s;]/g, ""),
         insideICSSRuleNode(path) ? node.prop : maybeToLowerCase(node.prop),
